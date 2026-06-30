@@ -230,8 +230,8 @@ import './contrib/providers/agentHost/browser/agentHostSessionBranchActions.js';
 import './contrib/providers/agentHost/browser/agentHostSkillButtons.js';
 import './contrib/providers/agentHost/electron-browser/agentHost.contribution.js';
 
-// Tunnel Host (allow remote connections to local agent host)
-import './contrib/tunnelHost/electron-browser/tunnelHost.contribution.js';
+// VS Agent: Tunnel Host (remote-connection sharing) titlebar toggle disabled —
+// it requires an auth token (cloud sign-in) that this product does not use.
 
 //#endregion
 
