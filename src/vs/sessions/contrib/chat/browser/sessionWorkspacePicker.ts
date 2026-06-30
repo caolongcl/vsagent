@@ -47,6 +47,12 @@ const STORAGE_KEY_RECENT_WORKSPACES = 'sessions.recentlyPickedWorkspaces';
 const FILTER_THRESHOLD = 10;
 const MAX_RECENT_WORKSPACES = 10;
 
+// VS Agent: "GitHub" workspace tab. The Copilot Cloud provider is disabled, so
+// the GitHub tab offers a "Clone repository..." browse action that clones to a
+// local folder and creates a Local session against it (plain GitHub auth, no
+// Copilot subscription).
+const SESSION_WORKSPACE_GROUP_GITHUB = localize('sessionWorkspaceGroup.github', "GitHub");
+
 /**
  * Fixed picker width when the categorical tab bar is shown. Keeps the tab
  * row and the list aligned and prevents horizontal jitter when switching
@@ -365,6 +371,12 @@ export class WorkspacePicker extends Disposable {
 			if (provider.supportsLocalWorkspaces && !byLabel.has(SESSION_WORKSPACE_GROUP_LOCAL)) {
 				byLabel.set(SESSION_WORKSPACE_GROUP_LOCAL, { id: SESSION_WORKSPACE_GROUP_LOCAL });
 			}
+			// VS Agent: the synthetic "Clone repository..." action (added in
+			// _getAllBrowseActions) lives under a GitHub tab. It produces a local
+			// workspace, so surface it whenever local workspaces are supported.
+			if (provider.supportsLocalWorkspaces && !byLabel.has(SESSION_WORKSPACE_GROUP_GITHUB)) {
+				byLabel.set(SESSION_WORKSPACE_GROUP_GITHUB, { id: SESSION_WORKSPACE_GROUP_GITHUB, icon: Codicon.github });
+			}
 			for (const action of provider.browseActions) {
 				if (action.group === SESSION_WORKSPACE_GROUP_REMOTE && !remoteAgentHostsEnabled) {
 					continue;
@@ -664,6 +676,18 @@ export class WorkspacePicker extends Disposable {
 				run: () => this._browseForLocalFolder(),
 			};
 			all.unshift(localAction);
+
+			// VS Agent: clone a (GitHub) repository to a local folder, then open it
+			// as a Local session — the replacement for the removed Copilot Cloud
+			// "GitHub" entry.
+			const cloneAction: ISessionWorkspaceBrowseAction = {
+				label: localize('workspacePicker.cloneFromGitHub', "Clone repository..."),
+				group: SESSION_WORKSPACE_GROUP_GITHUB,
+				icon: Codicon.github,
+				providerId: '',
+				run: () => this._cloneGitHubRepo(),
+			};
+			all.unshift(cloneAction);
 		}
 		if (!this._isTabFiltered()) {
 			return all;
@@ -696,6 +720,40 @@ export class WorkspacePicker extends Disposable {
 		// provider used to create the session is rediscovered at creation time.
 		for (const provider of localProviders) {
 			const workspace = provider.resolveWorkspace(result[0]);
+			if (workspace) {
+				return workspace;
+			}
+		}
+		return undefined;
+	}
+
+	/**
+	 * Clones a (GitHub) repository to a local folder via the built-in git
+	 * `git.clone` command (which handles repo selection and GitHub auth), then
+	 * resolves the cloned folder as a local workspace so a Local session can be
+	 * created against it. `postCloneAction: 'none'` prevents it from opening a
+	 * separate window.
+	 */
+	private async _cloneGitHubRepo(): Promise<ISessionWorkspace | undefined> {
+		const localProviders = this.sessionsProvidersService.getProviders().filter(p => p.supportsLocalWorkspaces);
+		if (localProviders.length === 0) {
+			return undefined;
+		}
+
+		let clonedPath: string | undefined;
+		try {
+			clonedPath = await this.commandService.executeCommand<string | undefined>('git.clone', undefined, undefined, { postCloneAction: 'none' });
+		} catch (error) {
+			this.notificationService.error(localize('workspacePicker.cloneFailed', "Failed to clone repository: {0}", error instanceof Error ? error.message : String(error)));
+			return undefined;
+		}
+		if (!clonedPath) {
+			return undefined;
+		}
+
+		const folderUri = URI.file(clonedPath);
+		for (const provider of localProviders) {
+			const workspace = provider.resolveWorkspace(folderUri);
 			if (workspace) {
 				return workspace;
 			}
