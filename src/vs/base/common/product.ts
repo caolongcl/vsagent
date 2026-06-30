@@ -103,6 +103,13 @@ export interface IProductConfiguration {
 	readonly embedderIdentifier?: string;
 	readonly agentsTelemetryAppName?: string;
 
+	/**
+	 * When set to `'agents'`, the desktop app boots directly into the Agents Window
+	 * instead of the regular workbench window. Used to ship the Agents Window as a
+	 * standalone product (e.g. VS Agent).
+	 */
+	readonly defaultWindowKind?: 'agents';
+
 	readonly urlProtocol: string;
 	readonly dataFolderName: string; // location for extensions (e.g. ~/.vscode-insiders)
 	readonly sharedDataFolderName: string; // location for shared data (e.g. ~/.vscode-insiders-shared)

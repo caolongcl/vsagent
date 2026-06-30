@@ -1395,8 +1395,10 @@ export class CodeApplication extends Disposable {
 		const context = isLaunchedFromCli(process.env) ? OpenContext.CLI : OpenContext.DESKTOP;
 		const args = this.environmentMainService.args;
 
-		// Handle agents window first based on context
-		if (args['agents']) {
+		// Handle agents window first based on context. The `defaultWindowKind`
+		// product flag lets the Agents Window ship as a standalone product
+		// (e.g. VS Agent) that always boots into the Agents Window.
+		if (args['agents'] || this.productService.defaultWindowKind === 'agents') {
 			return windowsMainService.openAgentsWindow({
 				context,
 				cli: args,

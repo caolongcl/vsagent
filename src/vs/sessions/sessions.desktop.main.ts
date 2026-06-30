@@ -208,8 +208,6 @@ import '../workbench/contrib/policyExport/electron-browser/policyExport.contribu
 
 //#region --- sessions contributions
 
-import './electron-browser/sessions.desktop.contribution.js';
-
 // Remote Agent Host
 import '../workbench/services/agentHost/electron-browser/agentHostService.js';
 import '../platform/agentHost/electron-browser/remoteAgentHostService.js';
