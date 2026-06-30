@@ -271,6 +271,13 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 	}
 
 	openEmptyWindow(openConfig: IOpenEmptyConfiguration, options?: IOpenEmptyWindowOptions): Promise<ICodeWindow[]> {
+		// VS Agent: every "empty" window is the Agents Window — covers macOS dock
+		// reactivation, the native tab "+", and the New Window command — so the
+		// product never falls back to a plain workbench window.
+		if (product.defaultWindowKind === 'agents' && !options?.remoteAuthority) {
+			return this.openAgentsWindow({ ...openConfig, cli: this.environmentMainService.args });
+		}
+
 		const cli = this.environmentMainService.args;
 		const remoteAuthority = options?.remoteAuthority || undefined;
 		const forceEmpty = true;
