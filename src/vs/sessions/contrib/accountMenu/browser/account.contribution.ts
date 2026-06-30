@@ -567,7 +567,9 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 	}
 
 	private shouldShowCopilotDashboardHover(): boolean {
-		return !this.chatEntitlementService.sentiment.hidden && !!this.accountName;
+		// VS Agent: never show the Copilot subscription/quota/upgrade dashboard.
+		// The account panel keeps the plain GitHub identity + sign-in/out actions.
+		return false;
 	}
 
 	private createCopilotHoverContent(extraOptions?: Partial<IChatStatusDashboardOptions>): HTMLElement {

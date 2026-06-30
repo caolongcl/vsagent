@@ -229,7 +229,10 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 			canDelegate: true,
 			requiresCustomModels: true,
 			supportsAutoModel: agentHostProviderSupportsAutoModel(agent.provider),
-			requiresCopilotSignIn: true,
+			// VS Agent: in the Agents Window, agent-host sessions (Claude/Codex/custom)
+			// run on the user's own provider keys (BYOK), so they must not be gated
+			// behind a Copilot sign-in. Keep the gate for the editor window.
+			requiresCopilotSignIn: this._isSessionsWindow ? false : true,
 			agentHostProviderId: agent.provider,
 			supportsDelegation: true,
 			capabilities: {

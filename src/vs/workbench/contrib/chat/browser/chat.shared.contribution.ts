@@ -1802,7 +1802,7 @@ configurationRegistry.registerConfiguration({
 		'chat.allowAnonymousAccess': { // TODO@bpasero remove me eventually
 			type: 'boolean',
 			description: nls.localize('chat.allowAnonymousAccess', "Controls whether anonymous access is allowed in chat."),
-			default: false,
+			default: true, // VS Agent: allow signed-out (no Copilot) use; chat/agents run on BYOK keys.
 			included: false,
 			tags: ['experimental'],
 			experiment: {

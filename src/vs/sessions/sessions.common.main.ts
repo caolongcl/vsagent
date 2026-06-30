@@ -459,7 +459,8 @@ import './contrib/chat/browser/chat.contribution.js';
 import './contrib/providers/agentHost/browser/exportDebugLogsAction.js';
 import './contrib/providers/agentHost/browser/agentHostSessionConfigPicker.js';
 import './contrib/chat/browser/customizationsDebugLog.contribution.js';
-import './contrib/providers/copilotChatSessions/browser/copilotChatSessions.contribution.js';
+// VS Agent: Copilot Cloud sessions provider disabled (subscription-gated). The Agents
+// Window runs on the agent-host (Claude/Codex/custom via BYOK) and local chat providers.
 import './contrib/providers/localChatSessions/browser/localChatSessions.contribution.js';
 import './contrib/sessions/browser/sessions.contribution.js';
 import './services/sessions/browser/sessionsListModelService.js';
