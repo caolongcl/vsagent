@@ -215,6 +215,11 @@ export function claudePreferAgentHostSettingId(isSessionsWindow: boolean): strin
  * should unconditionally return `true` and callers can drop the gate entirely.
  */
 export function shouldSurfaceLocalAgentHostProvider(provider: AgentProvider, configurationService: IConfigurationService, isSessionsWindow: boolean): boolean {
+	// VS Agent: never surface the Copilot CLI agent (subscription-gated). The
+	// product runs on Claude/Codex/custom agents and BYOK models instead.
+	if (provider === 'copilotcli') {
+		return false;
+	}
 	if (provider !== 'claude') {
 		return true;
 	}
