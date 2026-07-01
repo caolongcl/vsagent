@@ -769,7 +769,7 @@ configurationRegistry.registerConfiguration({
 		[ClaudePreferAgentHostAgentsSettingId]: {
 			type: 'boolean',
 			markdownDescription: nls.localize('chat.agents.claude.preferAgentHost', "When enabled, Claude sessions opened from the Agents Window run inside the agent host process instead of the GitHub Copilot Chat extension. Only one Claude implementation surfaces per window. Requires `#{0}#`.", AgentHostEnabledSettingId),
-			default: false,
+			default: true, // VS Agent: surface the agent-host Claude (BYOK, own ANTHROPIC_API_KEY) by default.
 			tags: ['experimental'],
 			experiment: { mode: 'startup' },
 		},
