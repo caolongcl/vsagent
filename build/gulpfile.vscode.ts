@@ -28,7 +28,7 @@ import minimist from 'minimist';
 import { compileBuildWithoutManglingTask, compileBuildWithManglingTask } from './gulpfile.compile.ts';
 import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
 import { copyCodiconsTask } from './lib/compilation.ts';
-import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
+import { copilotPlatforms, ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
 import { readAgentSdkResults } from './agent-sdk/common.ts';
 import { useEsbuildTranspile } from './buildConfig.ts';
 import { promisify } from 'util';
@@ -616,6 +616,15 @@ function prepareCopilotRipgrepShimTask(platform: string, arch: string, destinati
 
 		const builtInCopilotExtensionDir = path.join(appBase, 'extensions', 'copilot');
 		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, appNodeModulesDir);
+
+		// VS Agent: the agent host is disabled, so the @github/copilot platform
+		// runtime (the ~84MB @github/copilot-<platform> package: index.js entry,
+		// runtime.node, tgrep/ripgrep, tree-sitter wasm) is never launched. The
+		// shim above has already copied the natives the built-in copilot extension
+		// needs into its own sdk, so drop the now-redundant platform package.
+		for (const p of copilotPlatforms) {
+			await fs.promises.rm(path.join(appNodeModulesDir, '@github', `copilot-${p}`), { recursive: true, force: true });
+		}
 	};
 }
 
