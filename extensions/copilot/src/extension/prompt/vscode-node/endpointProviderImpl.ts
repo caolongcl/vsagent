@@ -77,6 +77,14 @@ export class ProductionEndpointProvider extends Disposable implements IEndpointP
 	private static readonly UTILITY_MODEL_CONFIG_KEY = 'chat.utilityModel';
 	private static readonly UTILITY_SMALL_MODEL_CONFIG_KEY = 'chat.utilitySmallModel';
 
+	// VS Agent: when no explicit utility override is set, internal utility calls
+	// (`copilot-utility` / `-small`) are routed to an available BYOK model instead
+	// of CAPI, so background tasks work without a Copilot token. Only non-`copilot`
+	// vendors are queried — selecting the `copilot` vendor here would re-enter the
+	// copilot LM provider while it is publishing its list and deadlock. Ordered
+	// cheap/local first, since utility work should be lightweight.
+	private static readonly BYOK_UTILITY_VENDORS = ['ollama', 'customendpoint', 'customoai', 'openrouter', 'openai', 'anthropic', 'gemini', 'xai', 'azure'];
+
 	/**
 	 * Per-family marker recording that we already emitted a telemetry event
 	 * for the currently-applied override. Used to dedupe so we emit at most
@@ -164,6 +172,13 @@ export class ProductionEndpointProvider extends Disposable implements IEndpointP
 		const override = await this._resolveUtilityOverride(family);
 		if (override) {
 			return override;
+		}
+		// VS Agent: with no explicit override, prefer any available BYOK model so
+		// utility calls run on the user's own keys instead of the CAPI copilot-utility
+		// families (which need a Copilot token). Falls through to CAPI if none exist.
+		const byokUtility = await this._resolveDefaultByokUtilityEndpoint();
+		if (byokUtility) {
+			return byokUtility;
 		}
 		if (family === 'copilot-utility-small') {
 			return CopilotUtilitySmallChatEndpoint.resolve(this._modelFetcher, this._instantiationService);
@@ -257,6 +272,28 @@ export class ProductionEndpointProvider extends Disposable implements IEndpointP
 		this._logService.trace(`[ProductionEndpointProvider] Applying ${configKey} override: ${model.vendor}/${model.id}`);
 		this._reportOverrideAppliedTelemetry(family);
 		return this._instantiationService.createInstance(ExtensionContributedChatEndpoint, model);
+	}
+
+	/**
+	 * VS Agent: resolves an available BYOK model to back the internal utility
+	 * families when the user has not set an explicit `chat.utilityModel` override.
+	 * Queries known non-`copilot` vendors in cheap/local-first order and returns
+	 * the first model found, or `undefined` when no BYOK model is registered.
+	 */
+	private async _resolveDefaultByokUtilityEndpoint(): Promise<IChatEndpoint | undefined> {
+		for (const vendor of ProductionEndpointProvider.BYOK_UTILITY_VENDORS) {
+			let models: readonly LanguageModelChat[];
+			try {
+				models = await lm.selectChatModels({ vendor });
+			} catch {
+				continue;
+			}
+			if (models.length > 0) {
+				this._logService.trace(`[ProductionEndpointProvider] Routing utility calls to BYOK model ${models[0].vendor}/${models[0].id}.`);
+				return this._instantiationService.createInstance(ExtensionContributedChatEndpoint, models[0]);
+			}
+		}
+		return undefined;
 	}
 
 	private _reportOverrideAppliedTelemetry(family: ChatEndpointFamily): void {
