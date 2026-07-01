@@ -104,8 +104,8 @@ export const agentHostCustomizationConfigSchema = createSchema({
 	[AgentHostConfigKey.ClaudeUseCopilotProxy]: schemaProperty<boolean>({
 		type: 'boolean',
 		title: localize('agentHost.config.claudeUseCopilotProxy.title', "Route Claude Through Copilot"),
-		description: localize('agentHost.config.claudeUseCopilotProxy.description', "When enabled, the Claude agent routes all requests through GitHub Copilot. When disabled (the default in VS Agent), Claude talks to Anthropic directly using your own credentials (API key or Claude subscription)."),
-		default: false,
+		description: localize('agentHost.config.claudeUseCopilotProxy.description', "When enabled (the default), the Claude agent routes all requests through GitHub Copilot. When disabled, Claude talks to Anthropic directly using your own credentials (API key or Claude subscription)."),
+		default: true,
 	}),
 });
 

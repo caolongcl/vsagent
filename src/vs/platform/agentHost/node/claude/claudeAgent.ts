@@ -352,10 +352,8 @@ export class ClaudeAgent extends Disposable implements IAgent {
 	}
 
 	private _resolveTransportMode(): 'proxy' | 'native' {
-		// VS Agent: default to native (talk to Anthropic directly with the user's
-		// own API key / Claude login). The Copilot proxy needs a Copilot token this
-		// product doesn't have, so proxy mode would yield no models.
-		const useProxy = this._configurationService.getRootValue(agentHostCustomizationConfigSchema, AgentHostConfigKey.ClaudeUseCopilotProxy) ?? false;
+		// Defaults to proxied when the `claudeUseCopilotProxy` root value is unset.
+		const useProxy = this._configurationService.getRootValue(agentHostCustomizationConfigSchema, AgentHostConfigKey.ClaudeUseCopilotProxy) ?? true;
 		return useProxy ? 'proxy' : 'native';
 	}
 
