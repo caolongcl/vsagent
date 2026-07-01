@@ -74,6 +74,12 @@ export function getSessionTypeAvailability(
 	if (hasModelsTargetingSessionType(languageModelsService, type) || chatSessionsService.supportsAutoModelForSessionType(type)) {
 		return SessionTypeAvailability.Available;
 	}
+	// VS Agent: session types that don't require a Copilot sign-in are BYOK
+	// (e.g. the agent-host Claude/Codex, which run on the user's own keys), so
+	// they are never gated behind a Copilot "Upgrade" — treat them as available.
+	if (!chatSessionsService.requiresCopilotSignInForSessionType(type)) {
+		return SessionTypeAvailability.Available;
+	}
 	// No Auto fallback and no targeted models: Free / Student users must upgrade
 	// to unlock the type (e.g. the cloud delegation agent is a paid feature).
 	const canUpgrade = entitlement === ChatEntitlement.Free || entitlement === ChatEntitlement.EDU;
