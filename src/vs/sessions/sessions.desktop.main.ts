@@ -228,6 +228,7 @@ import './contrib/providers/agentHost/browser/agentSessionSettings.contribution.
 import './contrib/providers/agentHost/browser/agentHostSettings.contribution.js';
 import './contrib/providers/agentHost/browser/agentHostSessionBranchActions.js';
 import './contrib/providers/agentHost/browser/agentHostSkillButtons.js';
+import './contrib/providers/agentHost/browser/openSubagentChat.js';
 import './contrib/providers/agentHost/electron-browser/agentHost.contribution.js';
 
 // VS Agent: Tunnel Host (remote-connection sharing) titlebar toggle disabled —
